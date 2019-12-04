@@ -17,17 +17,19 @@ local screenHeight
 
 
 function love.load()
-  love.window.setMode (750, 705)
-  love.window.setTitle ("Mini rogue II")
+	love.window.setMode (1200, 800)
+	love.window.setTitle ("Mini rogue II")
 
-  screenWidth = love.graphics.getWidth()
-  screenHeight = love.graphics.getHeight()
+	screenWidth = love.graphics.getWidth()
+	screenHeight = love.graphics.getHeight()
 
-  pixelsize = 4
-  love.graphics.setPointSize (pixelsize)
-  love.graphics.setBackgroundColor (0.2, 0.2, 0.2)
+	pixelsize = 4
+	love.graphics.setPointSize (pixelsize)
+	love.graphics.setBackgroundColor (0.2, 0.2, 0.2)
 
-  Game:loadTiles()
+	local hero = require("player")
+	Game:loadTiles()
+	Game.spawn (hero, 3, 3)
 end
 
 function love.update(dt)
@@ -46,12 +48,6 @@ function love.keypressed(key)
 
   if key == "f"  then
     Game.toggleFullscreen()
-  end
-
-  if key == "down"      then Game.movePlayer ({ x =  0, y =  1 })
-  elseif key == "up"    then Game.movePlayer ({ x =  0, y = -1 })
-  elseif key == "right" then Game.movePlayer ({ x =  1, y =  0 })
-  elseif key == "left"  then Game.movePlayer ({ x = -1, y =  0 })
   end
 
 end

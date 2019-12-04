@@ -10,12 +10,44 @@ Player.targetDeltaS = 0.5
 Player.deltaS = 0.0
 Player.switchable = false
 Player.currentSprite = 1
-Player.row = 3
-Player.col = 3
+Player.row = 1
+Player.col = 1
+Player.moving = false
 
 local time =  0
 
+function Player.move (vector)
+	local newposx = Player.col
+	local newposy = Player.row
+
+	if love.keyboard.isDown ("down")      then newposy = Player.row + 1
+	elseif love.keyboard.isDown ("up")    then newposy = Player.row - 1
+	elseif love.keyboard.isDown ("right") then newposx = Player.col + 1
+	elseif love.keyboard.isDown ("left")  then newposx = Player.col - 1
+	end
+
+	if not Player.world.checkHit ({x = newposx, y = newposy}) then
+		Player.col = newposx
+		Player.row = newposy
+	end
+end
+
+function Player.setCoordinates (row, col)
+	Player.row = row
+	Player.col = col
+end
+
 function Player.update (dt)
+
+	if love.keyboard.isDown ("up", "right", "down", "left") then
+		if not Player.moving then
+			Player.moving = true
+			Player.move ()
+		end
+	else
+		Player.moving = false
+	end
+
   time = time + dt
 
   function doswitch()
@@ -34,8 +66,8 @@ function Player.update (dt)
 end
 
 function Player.draw(map)
-  local x = (Player.col-1) * map.TILE_WIDTH
-  local y = (Player.row-1) * map.TILE_HEIGHT
+  local x = (Player.col - 1) * Player.world.TILE_WIDTH
+  local y = (Player.row - 1) * Player.world.TILE_HEIGHT
   love.graphics.draw (Player.sprites[Player.currentSprite], x, y, 0, 2, 2)
   love.graphics.print ("Time : "..tostring(math.floor(time)).."s", 25, 200)
 end
