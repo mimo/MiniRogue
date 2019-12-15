@@ -48,28 +48,27 @@ function Player.update (dt)
 		Player.moving = false
 	end
 
-  time = time + dt
+	time = time + dt
 
-  function doswitch()
-    if Player.currentSprite < #Player.sprites then
-      Player.currentSprite = Player.currentSprite+1
-    else
-      Player.currentSprite = 1
-    end
-  end
+	function doswitch()
+		if Player.currentSprite < #Player.sprites then
+			Player.currentSprite = Player.currentSprite+1
+		else
+			Player.currentSprite = 1
+		end
+	end
 
-  if time > Player.deltaS then
-    Player.deltaS = Player.deltaS + Player.targetDeltaS
-    doswitch()
-  end
+	if time > Player.deltaS then
+		Player.deltaS = Player.deltaS + Player.targetDeltaS
+		doswitch()
+	end
 
 end
 
 function Player.draw(map)
-  local x = (Player.col - 1) * Player.world.TILE_WIDTH
-  local y = (Player.row - 1) * Player.world.TILE_HEIGHT
-  love.graphics.draw (Player.sprites[Player.currentSprite], x, y, 0, 2, 2)
-  love.graphics.print ("Time : "..tostring(math.floor(time)).."s", 25, 200)
+	local x = (Player.col - 1) * Player.world.TILE_WIDTH
+	local y = (Player.row - 1) * Player.world.TILE_HEIGHT
+	love.graphics.draw (Player.sprites[Player.currentSprite], x, y, 0, 2, 2)
 end
 
 return Player

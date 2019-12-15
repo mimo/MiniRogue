@@ -3,12 +3,10 @@ Game.__index = Game
 
 local isFullscreen = false
 
-local gfx = {}
+local GFX = require("gfx")
 
-Game.messages = {}
-
-Game.map = {}
-Game.map.grid =  {
+Game.level = {}
+Game.level.map =  {
 	{10,10,10,10,10,10,10,10,10,61,10,13,10,10,10,10,10,10,13,14,15,15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15},
 	{10, 10, 10, 10, 10, 11, 11, 11, 10, 10, 10, 13, 10, 10, 10, 10, 10, 10, 10, 14, 15, 15, 129, 15, 15, 15, 15, 15, 15, 68, 15, 15},
 	{10, 10, 61, 10, 11, 19, 19, 19, 11, 10, 10, 13, 10, 10, 169, 10, 10, 10, 10, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15},
@@ -27,111 +25,89 @@ Game.map.grid =  {
 	{10, 10, 10, 10, 13, 10, 10, 10, 10, 142, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1, 37, 37, 37, 37, 37, 37},
 	{10, 10, 10, 10, 13, 10, 10, 10, 10, 10, 10, 10, 10, 142, 10, 10, 10, 10, 10, 10, 10, 169, 10, 10, 1, 37, 37, 37, 37, 37, 37, 37},
 	{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 1, 37, 37, 37, 37, 37, 37, 37},
-  {14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 1, 37, 37, 37, 37, 37, 37, 37},
-  {19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 1, 37, 37, 37, 37, 37, 37, 37},
-  {20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 1, 37, 37, 37, 37, 37, 37},
-  {21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 1, 37, 37, 37, 37},
-  {21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 1, 37, 37, 37}
+	{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 1, 37, 37, 37, 37, 37, 37, 37},
+	{19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 1, 37, 37, 37, 37, 37, 37, 37},
+	{20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 1, 37, 37, 37, 37, 37, 37},
+	{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 1, 37, 37, 37, 37},
+	{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 1, 37, 37, 37}
 }
 
-Game.map.TILE_WIDTH = 32
-Game.map.TILE_HEIGHT = 32
-
-Game.currentCell = {row = 1, col = 1}
-Game.tileSheet = nil
-Game.tilesTextures = {}
+Game.mouseAtCell = {row = 1, col = 1}
+Game.level.mapTileSheet = nil
+Game.level.tilesTextures = {}
 Game.entities = {}
 
 function Game.draw()
-  local col, row = 0, 0
-  local ox, oy
+	local col, row = 0, 0
+	local ox, oy
 
-  sx = love.graphics.getWidth() / #Game.map
-  sy = love.graphics.getHeight() / #Game.map.grid[1]
+	sx = love.graphics.getWidth() / #Game.level
+	sy = love.graphics.getHeight() / #Game.level.map[1]
 
-  for row in ipairs(Game.map.grid) do
-    for col in ipairs(Game.map.grid[row]) do
-      local id = Game.map.grid[row][col]
-      local texQuad = Game.tilesTextures[id]
-      if texQuad ~= nil then
-        ox = (col-1) * Game.map.TILE_WIDTH
-        oy = (row-1) * Game.map.TILE_HEIGHT
-        love.graphics.draw (Game.tileSheet, texQuad, ox, oy)
-      end
-    end
-  end
-
-  love.graphics.print ("colonne : "..tostring(Game.currentCell.col),love.graphics.getWidth()-200, 20)
-  love.graphics.print ("ligne : "..tostring(Game.currentCell.row),love.graphics.getWidth()-200, 35)
-  local id = Game.map.grid [Game.currentCell.row][Game.currentCell.col]
-  love.graphics.print("Type : ".. Game.getTiletypeName(id),  love.graphics.getWidth()-200, 50)
+	for row in ipairs (Game.level.map) do
+		for col in ipairs (Game.level.map[row]) do
+			local id = Game.level.map[row][col]
+			local texQuad = Game.level.tilesTextures[id]
+			if texQuad ~= nil then
+				ox = (col-1) * Game.level.TILE_WIDTH
+				oy = (row-1) * Game.level.TILE_HEIGHT
+				love.graphics.draw (Game.level.mapTileSheet, texQuad, ox, oy)
+			end
+		end
+	end
 
 	for i, entity in ipairs (Game.entities) do
 		entity.draw (Game.map)
 	end
-
-  for i, msg in pairs (Game.messages) do
-    love.graphics.print(msg, love.graphics.getWidth()-230, 60+i*15)
-  end
-
-end
-
-function Game.getTiletypeName(id)
-  local tileTypeNames = {}
-  tileTypeNames[19] = "Eau"
-  tileTypeNames[10] = "Herbe"
-  tileTypeNames[13] = "Gravier"
-  tileTypeNames[20] = "Mer"
-  tileTypeNames[21] = "Mer"
-  tileTypeNames[55] = "Arbre"
-  tileTypeNames[58] = "Arbre agé"
-  tileTypeNames[61] = "Conifère"
-  tileTypeNames[169] = "Rochers"
-
-  if tileTypeNames[id] ~= nil then
-    return tileTypeNames[id]
-  else
-    return "Code : "..tostring(id)
-  end
 end
 
 function Game.loadTiles()
-  print ("Chargement des textures ...")
-  Game.tileSheet = love.graphics.newImage("images/tilesheet.png");
-  local nbcol = Game.tileSheet:getWidth() / Game.map.TILE_WIDTH
-  local nbrow = Game.tileSheet:getHeight() / Game.map.TILE_HEIGHT
-  local id = 1
+	print ("Chargement des textures ...")
+	Game.level.mapTileSheet = love.graphics.newImage("images/tilesheet.png");
+	Game.level.TILE_WIDTH = 32
+	Game.level.TILE_HEIGHT = 32
 
-  Game.tilesTextures[0] = nil
+	local nbcol = Game.level.mapTileSheet:getWidth() / Game.level.TILE_WIDTH
+	local nbrow = Game.level.mapTileSheet:getHeight() / Game.level.TILE_HEIGHT
+	local id = 1
 
-  for row=1,nbrow do
-    for col=1,nbcol do
-      Game.tilesTextures[id] = love.graphics.newQuad ((col-1) * Game.map.TILE_WIDTH, (row-1) * Game.map.TILE_HEIGHT,Game.map.TILE_WIDTH, Game.map.TILE_HEIGHT,Game.tileSheet:getWidth(), Game.tileSheet:getHeight() )
-      id = id + 1
-    end
+	Game.level.tilesTextures[0] = nil
 
-  end
+	for row=1,nbrow do
+		for col=1,nbcol do
+			local tileSprite = love.graphics.newQuad (
+				(col-1) * Game.level.TILE_WIDTH,
+				(row-1) * Game.level.TILE_HEIGHT,
+				Game.level.TILE_WIDTH,
+				Game.level.TILE_HEIGHT,
+				Game.level.mapTileSheet:getWidth(),
+				Game.level.mapTileSheet:getHeight() )
+			Game.level.tilesTextures[id] = tileSprite
+			id = id + 1
+		end
 
-  print ("Textures chargées.")
+	end
+
+	print ("Textures chargées.")
 end
 
 function Game.spawn (entity, posx, posy)
-	entity.world = Game.map
+	entity.world = Game.level
 	entity.setCoordinates (posx, posy)
 	table.insert (Game.entities, entity)
 end
 
-function Game.map.checkHit (coordinates)
+function Game.level.checkHit (coordinates)
 
 	if coordinates.x < 1
 	   or coordinates.y < 1
-	   or coordinates.x > #Game.map.grid[1]
-	   or coordinates.y > #Game.map.grid
+	   or coordinates.x > #Game.level.map[1]
+	   or coordinates.y > #Game.level.map
 	then
 		return true
 	end
 
-	local tileType = Game.map.grid[coordinates.y][coordinates.x]
+	local tileType = Game.level.map[coordinates.y][coordinates.x]
 
 	if tileType == 21 or
 		tileType == 55 or
@@ -147,37 +123,28 @@ function Game.map.checkHit (coordinates)
 end
 
 function Game.update (dt)
-  local mx = love.mouse.getX()
-  local my = love.mouse.getY()
+	local mx = love.mouse.getX()
+	local my = love.mouse.getY()
 
-  if mx <= Game.map.TILE_WIDTH * #Game.map.grid[1] and mx > 0 and my > 0 and my <= Game.map.TILE_HEIGHT * #Game.map.grid then
-    Game.currentCell.col = math.ceil(mx / Game.map.TILE_WIDTH)
-    Game.currentCell.row = math.ceil(my / Game.map.TILE_HEIGHT)
-  end
+	if mx <= Game.level.TILE_WIDTH * #Game.level.map[1] and mx > 0 and my > 0 and my <= Game.level.TILE_HEIGHT * #Game.level.map then
+		Game.mouseAtCell.col = math.ceil(mx / Game.level.TILE_WIDTH)
+		Game.mouseAtCell.row = math.ceil(my / Game.level.TILE_HEIGHT)
+	end
 
-  for i, entity in ipairs (Game.entities) do
+	for i, entity in ipairs (Game.entities) do
 		entity.update (dt)
-  end
+	end
 end
 
-function Game.showMessage (msg, id)
-  table.insert (Game.messages, msg)
-  if #Game.messages > 10 then
-    table.remove (Game.messages, 1)
-  end
-end
 
-function Game.clearMessages ()
-  Game.messages = {}
-end
 
 function Game.toggleFullscreen()
-  if isFullscreen
-  then love.window.setFullscreen(false)
-  else love.window.setFullscreen(true)
-  end
+	if isFullscreen
+	then love.window.setFullscreen(false)
+	else love.window.setFullscreen(true)
+	end
 
-  isFullscreen = not isFullscreen
+	isFullscreen = not isFullscreen
 end
 
 return Game
