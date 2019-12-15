@@ -35,7 +35,9 @@ Game.level.map =  {
 Game.mouseAtCell = {row = 1, col = 1}
 Game.level.mapTileSheet = nil
 Game.level.tilesTextures = {}
+Game.level.fog = {}
 Game.entities = {}
+Game.playerSurroundings = {}
 
 function Game.draw()
 	local col, row = 0, 0
@@ -52,12 +54,45 @@ function Game.draw()
 				ox = (col-1) * Game.level.TILE_WIDTH
 				oy = (row-1) * Game.level.TILE_HEIGHT
 				love.graphics.draw (Game.level.mapTileSheet, texQuad, ox, oy)
+				fogShade = Game.level.fog[row][col]
+				if Game.playerSurroundings [row] ~= nil then
+					if Game.playerSurroundings [row][col] ~= nil then
+						fogShade = 0.0
+					end
+				end
+				love.graphics.setColor(0, 0, 0, fogShade)
+				love.graphics.rectangle ("fill", ox, oy, Game.level.TILE_WIDTH, Game.level.TILE_HEIGHT)
+				love.graphics.reset ()
 			end
 		end
 	end
 
 	for i, entity in ipairs (Game.entities) do
 		entity.draw (Game.map)
+	end
+end
+
+function Game.level.clearFog (hRow, hCol)
+	local sRow = hRow-1
+	local eRow = hRow+1
+	local sCol = hCol-1
+	local eCol = hCol+1
+	local worldEnd = {row = #Game.level.map, col = #Game.level.map[1]}
+
+	if sRow < 1 then sRow = 1
+	elseif eRow >= worldEnd.row then eRow = worldEnd.row
+	end
+
+	if sCol < 1 then sCol = 1
+	elseif eCol >= worldEnd.col then eCol = worldEnd.col
+	end
+
+	for row=sRow,eRow do
+		Game.playerSurroundings [row] = {}
+		for col=sCol,eCol do
+			Game.level.fog[row][col] = 0.5
+			Game.playerSurroundings [row][col] = 1
+		end
 	end
 end
 
@@ -89,6 +124,14 @@ function Game.loadTiles()
 	end
 
 	print ("Textures chargées.")
+
+	local col, row = 0, 0
+	for row in ipairs (Game.level.map) do
+		Game.level.fog[row] = {}
+		for col in ipairs (Game.level.map[row]) do
+			Game.level.fog[row][col] = 1.0
+		end
+	end
 end
 
 function Game.spawn (entity, posx, posy)
@@ -130,6 +173,8 @@ function Game.update (dt)
 		Game.mouseAtCell.col = math.ceil(mx / Game.level.TILE_WIDTH)
 		Game.mouseAtCell.row = math.ceil(my / Game.level.TILE_HEIGHT)
 	end
+
+	Game.playerSurroundings = {}
 
 	for i, entity in ipairs (Game.entities) do
 		entity.update (dt)

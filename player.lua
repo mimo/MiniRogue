@@ -48,6 +48,8 @@ function Player.update (dt)
 		Player.moving = false
 	end
 
+	Player.world.clearFog (Player.row, Player.col)
+
 	time = time + dt
 
 	function doswitch()
