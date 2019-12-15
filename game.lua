@@ -57,7 +57,7 @@ function Game.draw()
 				fogShade = Game.level.fog[row][col]
 				if Game.playerSurroundings [row] ~= nil then
 					if Game.playerSurroundings [row][col] ~= nil then
-						fogShade = 0.0
+						fogShade = Game.playerSurroundings [row][col]
 					end
 				end
 				love.graphics.setColor(0, 0, 0, fogShade)
@@ -73,25 +73,33 @@ function Game.draw()
 end
 
 function Game.level.clearFog (hRow, hCol)
-	local sRow = hRow-1
-	local eRow = hRow+1
-	local sCol = hCol-1
-	local eCol = hCol+1
+	local range = 6
+	local sRow = hRow-range
+	local eRow = hRow+range
+	local sCol = hCol-range
+	local eCol = hCol+range
 	local worldEnd = {row = #Game.level.map, col = #Game.level.map[1]}
 
-	if sRow < 1 then sRow = 1
-	elseif eRow >= worldEnd.row then eRow = worldEnd.row
-	end
+	if sRow < 1 then sRow = 1 end
+	if eRow >= worldEnd.row then eRow = worldEnd.row end
 
-	if sCol < 1 then sCol = 1
-	elseif eCol >= worldEnd.col then eCol = worldEnd.col
-	end
+	if sCol < 1 then sCol = 1 end
+	if eCol >= worldEnd.col then eCol = worldEnd.col end
 
 	for row=sRow,eRow do
 		Game.playerSurroundings [row] = {}
 		for col=sCol,eCol do
-			Game.level.fog[row][col] = 0.5
-			Game.playerSurroundings [row][col] = 1
+			local dx = row - hRow
+			local dy = col - hCol
+			local dist = math.sqrt(dx * dx + dy * dy)
+			local surroundShading = 1.0 / range * dist / 2
+			local fogShading = 0.6
+			if dist < range then
+				Game.level.fog[row][col] = 0.6
+				if fogShading > surroundShading then
+					Game.playerSurroundings [row][col] = surroundShading
+				end
+			end
 		end
 	end
 end
